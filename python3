@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+# Runs 'python3' in an existing or new Docker container.
+#
+# Usage:
+#
+# `./python3 test/*_test.py` -- run unit tests
+
+exec "$(dirname "$0")"/in-docker python3 "$@"
