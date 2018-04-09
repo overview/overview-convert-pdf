@@ -64,7 +64,7 @@ FROM overview/overview-convert-framework:0.0.12 AS framework
 # We put this build stage here, so that the "compiled" build stage won't
 # force a rebuild when tests pass
 FROM alpine:3.7 AS base
-RUN apk add --update --no-cache jq
+RUN apk add --update --no-cache jq ca-certificates
 WORKDIR /app
 COPY --from=framework /app/run /app/
 COPY --from=framework /app/convert-stream-to-mime-multipart /app/convert
