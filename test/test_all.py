@@ -10,7 +10,7 @@ import unittest
 
 import multipart
 
-TestDir = '/tmp/test-split-and-extract-pdf/current-test-case'
+TestDir = '/tmp/test-split-and-extract-pdf'
 
 class Fragment:
     def __init__(self, name, bytes):
@@ -30,12 +30,11 @@ def read_file_bytes(path):
 def run_test_case(dirname):
     if os.path.exists(TestDir):
         shutil.rmtree(TestDir)
-    if not os.path.exists(os.path.dirname(TestDir)):
-        os.makedirs(os.path.dirname(TestDir), exist_ok=True)
-    shutil.copytree('/app/test/' + dirname, TestDir)
-    with open(TestDir + '/input.blob', 'rb') as input_blob:
+    os.makedirs(TestDir)
+    srcdir = '/app/test/' + dirname
+    with open(srcdir + '/input.blob', 'rb') as input_blob:
         completed = subprocess.run(
-                [ '/app/do-convert-stream-to-mime-multipart', 'MIME-BOUNDARY', read_file_bytes(TestDir + '/input.json').decode('utf-8') ],
+                [ '/app/do-convert-stream-to-mime-multipart', 'MIME-BOUNDARY', read_file_bytes(srcdir + '/input.json').decode('utf-8') ],
                 stdin=input_blob,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

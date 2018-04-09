@@ -2,6 +2,8 @@
 
 set -e
 
+cat > input.blob
+
 if [ 'true' = $(echo "$2" | jq .wantSplitByPage) ]; then
   JSON_TEMPLATE="$(echo "$2" | jq -c '{ filename: .filename, contentType: "application/pdf", languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, metadata: (.metadata + { "pageNumber": "%PAGENUM%" }) }')"
 
