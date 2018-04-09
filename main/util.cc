@@ -207,7 +207,7 @@ outputErrorAndExit(const std::string& message, const std::string& mimeBoundary)
 void
 outputProgress(int nProcessed, int nTotal, const std::string& mimeBoundary)
 {
-  const std::string message = std::string("{\"children\":{\"nProcessed\":") + std::to_string(nProcessed) + ",\"nTotal\":" + std::to_string(nTotal) + "\"}}";
+  const std::string message = std::string("{\"children\":{\"nProcessed\":") + std::to_string(nProcessed) + ",\"nTotal\":" + std::to_string(nTotal) + "}}";
   outputFragment("progress", message, mimeBoundary);
 }
 

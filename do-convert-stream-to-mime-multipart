@@ -1,11 +1,13 @@
 #!/bin/sh
 
-if [ '"true"' = $(echo "$2" | jq .wantSplitByPage) ]; then
-  JSON_TEMPLATE="$(echo "$2" | jq '{ filename: .filename, languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, contentType: "application/pdf", metadata: (.metadata + { "pageNumber": "%PAGENUM%" }) }')"
+set -e
 
-  exec /app/split-and-extract-pdf "$1" "$2"
+if [ 'true' = $(echo "$2" | jq .wantSplitByPage) ]; then
+  JSON_TEMPLATE="$(echo "$2" | jq -c '{ filename: .filename, contentType: "application/pdf", languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, metadata: (.metadata + { "pageNumber": "%PAGENUM%" }) }')"
+
+  exec /app/split-and-extract-pdf "$1" "$JSON_TEMPLATE"
 else
-  JSON="$(echo "$2" | jq '{ filename: .filename, languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, contentType: "application/pdf", metadata: .metadata }')"
+  JSON="$(echo "$2" | jq -c '{ filename: .filename, contentType: "application/pdf", languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, metadata: .metadata }')"
 
-  exec /app/extract-pdf "$1" "$2"
+  exec /app/extract-pdf "$1" "$JSON"
 fi

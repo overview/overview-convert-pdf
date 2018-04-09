@@ -1,0 +1,8 @@
+{
+  "filename": "foo/bar.doc",
+  "contentType": "application/octet-stream",
+  "languageCode": "fr",
+  "metadata": { "foo": "bar" },
+  "wantOcr": false,
+  "wantSplitByPage": false
+}

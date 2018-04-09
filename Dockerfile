@@ -68,20 +68,35 @@ RUN apk add --update --no-cache jq
 WORKDIR /app
 COPY --from=framework /app/run /app/
 COPY --from=framework /app/convert-stream-to-mime-multipart /app/convert
-COPY do-convert-stream-to-mime-multipart /app/
+
+
+# Also: build a "test framework" stage that won't force a rebuild when tests
+# change
+FROM base AS test-base
+RUN apk add --update --no-cache python3
 
 
 # == compiled == : prebuild plus binaries
 FROM prebuild AS compiled
 WORKDIR /src
-COPY . /src/
+COPY Makefile /src/Makefile
+COPY main /src/main
 RUN make all
+
+
+# == test == : run unit tests (using Docker Hub as a minimal CI tool)
 # Fail the build if tests fail.
-#
 # Docker Hub: a minimal CI framework.
-RUN python3 test/test_*.py
+FROM test-base AS test
+COPY --from=compiled /src/split-and-extract-pdf /app/
+COPY --from=compiled /src/extract-pdf /app/
+COPY do-convert-stream-to-mime-multipart /app/
+COPY test /app/test/
+RUN python3 /app/test/test_*.py
 
 
 FROM base AS production
 COPY --from=compiled /src/split-and-extract-pdf /app/
 COPY --from=compiled /src/extract-pdf /app/
+COPY do-convert-stream-to-mime-multipart /app/
+CMD [ "/app/run" ]
