@@ -1,3 +1,4 @@
+#include <cctype>
 #include <cmath>
 #include <codecvt>
 #include <locale>
@@ -7,8 +8,10 @@
 #include <vector>
 
 #include "public/cpp/fpdf_deleters.h"
+#include "public/fpdf_doc.h"
 #include "public/fpdf_text.h"
 #include "public/fpdfview.h"
+#include "json.hpp"
 #include "lodepng.h"
 
 #include "util.h"
@@ -224,4 +227,152 @@ formatLastPdfiumError()
     case FPDF_ERR_PAGE: return "page not found or content error";
     default: return std::string("unknown error: ") + std::to_string(err);
   }
+}
+
+struct StringView {
+  const char* s;
+  size_t size_;
+
+  StringView substr(size_t begin) const {
+    return { s + begin, size_ - begin };
+  }
+
+  // API kinda like std::string_view
+  size_t size() const { return size_; };
+  char operator[](size_t i) const { return s[i]; }
+};
+
+/**
+ * Return an ISO8601 String, or an empty String on invalid pdfDate
+ *
+ * pdfDate looks like D:20150312175256+08'00'. All pieces aside from year are
+ * optional -- even the timezone.
+ */
+static std::string
+pdfDateToIso8601Date(const std::string& pdfDate)
+{
+  StringView s = { pdfDate.data(), pdfDate.size() };
+  if (!(s.size() >= 6 && s[0] == 'D' && s[1] == ':')) return std::string();
+  s = s.substr(2);
+
+  // Can build something as long as "YYYY-MM-DDTHH:mm:ss+0500"
+  char out[24];
+  size_t len = 0;
+
+  if (!(s.size() >= 4 && std::isdigit(s[0]) && std::isdigit(s[1]) && std::isdigit(s[2]) && std::isdigit(s[3]))) return std::string();
+
+  // YYYY
+  out[0] = s[0];
+  out[1] = s[1];
+  out[2] = s[2];
+  out[3] = s[3];
+  len = 4;
+  s = s.substr(4);
+
+  if (s.size() >= 2 && std::isdigit(s[0]) && std::isdigit(s[1])) {
+    // -MM
+    out[4] = '-';
+    out[5] = s[0];
+    out[6] = s[1];
+    len = 7;
+    s = s.substr(2);
+
+    if (s.size() >= 2 && std::isdigit(s[0]) && std::isdigit(s[1])) {
+      // -DD
+      out[7] = '-';
+      out[8] = s[0];
+      out[9] = s[1];
+      len = 10;
+      s = s.substr(2);
+
+      if (s.size() >= 2 && std::isdigit(s[0]) && std::isdigit(s[1])) {
+        // :HH
+        out[10] = 'T';
+        out[11] = s[0];
+        out[12] = s[1];
+        len = 13;
+        s = s.substr(2);
+
+        if (s.size() >= 2 && std::isdigit(s[0]) && std::isdigit(s[1])) {
+          // :mm
+          out[13] = ':';
+          out[14] = s[0];
+          out[15] = s[1];
+          len = 16;
+          s = s.substr(2);
+
+          if (s.size() >= 2 && std::isdigit(s[0]) && std::isdigit(s[1])) {
+            // :ss
+            out[16] = ':';
+            out[17] = s[0];
+            out[18] = s[1];
+            len = 19;
+            s = s.substr(2);
+
+            if (s.size() >= 1 && s[0] == 'Z') {
+              out[19] = 'Z';
+              len = 20;
+              s = s.substr(1);
+            } else if (s.size() >= 4 && (s[0] == '+' || s[0] == '-') && std::isdigit(s[1]) && std::isdigit(s[2]) && s[3] == '\'') {
+              // +03
+              out[19] = s[0];
+              out[20] = s[1];
+              out[21] = s[2];
+              len = 22;
+              s = s.substr(4);
+
+              if (s.size() >= 3 && std::isdigit(s[0]) && std::isdigit(s[1]) && s[2] == '\'') {
+                // 00
+                out[22] = s[0];
+                out[23] = s[1];
+                len = 24;
+                s = s.substr(3);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (s.size() == 0) {
+    return std::string(out, len);
+  } else {
+    // Invalid format
+    return std::string();
+  }
+}
+
+static void
+readAndAddMetadata(FPDF_DOCUMENT fDocument, nlohmann::json& metadata, const char* pdfTag, const char* jsonKey, bool isDate = false)
+{
+  if (metadata.contains(jsonKey)) return;
+
+  const size_t buflen = 500;
+  char16_t utf16Buf[buflen / 2];
+
+  size_t len = FPDF_GetMetaText(fDocument, pdfTag, &utf16Buf, buflen);
+  if (len <= 2) return;
+
+  const std::u16string u16Text(&utf16Buf[0], (len - 2) / 2);
+  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
+  std::string u8Text(convert.to_bytes(u16Text));
+
+  if (isDate) {
+    u8Text = pdfDateToIso8601Date(u8Text);
+    if (u8Text.size() == 0) return;
+  }
+
+  metadata[jsonKey] = u8Text;
+}
+
+void
+addDocumentMetadataFromPdf(nlohmann::json& metadata, FPDF_DOCUMENT fDocument)
+{
+  readAndAddMetadata(fDocument, metadata, "Title", "Title");
+  readAndAddMetadata(fDocument, metadata, "Author", "Author");
+  readAndAddMetadata(fDocument, metadata, "Subject", "Subject");
+  readAndAddMetadata(fDocument, metadata, "Keywords", "Keywords");
+  readAndAddMetadata(fDocument, metadata, "CreationDate", "Creation Date", true);
+  readAndAddMetadata(fDocument, metadata, "ModificationDate", "Modification Date", true);
 }

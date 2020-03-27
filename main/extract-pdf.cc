@@ -9,11 +9,12 @@
 #include "public/cpp/fpdf_deleters.h"
 #include "public/fpdfview.h"
 #include "public/fpdf_ppo.h"
+#include "json.hpp"
 
 #include "util.h"
 
 static void
-extractPdf(const char* filename, const std::string& mimeBoundary)
+extractPdf(const char* filename, const std::string& inputJson, const std::string& mimeBoundary)
 {
   FPDF_STRING fFilename(filename);
   std::unique_ptr<void, FPDFDocumentDeleter> fDocument(FPDF_LoadDocument(fFilename, nullptr));
@@ -21,6 +22,11 @@ extractPdf(const char* filename, const std::string& mimeBoundary)
     outputErrorAndExit(std::string("Failed to open PDF: ") + formatLastPdfiumError(), mimeBoundary);
     return;
   }
+
+  nlohmann::json jsonData = nlohmann::json::parse(inputJson);
+  addDocumentMetadataFromPdf(jsonData["metadata"], fDocument.get());
+  outputFragment("0.json", jsonData.dump(), mimeBoundary);
+  outputFragment("inherit-blob", "", mimeBoundary);
 
   const int nPages = FPDF_GetPageCount(fDocument.get());
   std::vector<std::string> pageTexts;
@@ -60,12 +66,10 @@ main(int argc, char** argv)
   }
 
   const std::string mimeBoundary = argv[1];
-  const std::string json = argv[2];
+  const std::string inputJson = argv[2];
 
   FPDF_InitLibrary();
-  outputFragment("0.json", json, mimeBoundary);
-  outputFragment("inherit-blob", "", mimeBoundary);
-  extractPdf("input.blob", mimeBoundary);
+  extractPdf("input.blob", inputJson, mimeBoundary);
 
   outputDoneAndExit(mimeBoundary);
 

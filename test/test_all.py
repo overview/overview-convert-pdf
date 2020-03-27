@@ -174,23 +174,13 @@ class TestSplitPdfAndExtractText(unittest.TestCase):
     def test_error_encrypted(self):
         test_dir = "test-error-encrypted"
         self._testFragments(
-            test_dir,
-            [
-                load_expected_fragment(test_dir, "0.json"),
-                Fragment("inherit-blob", b""),
-                load_expected_fragment(test_dir, "error"),
-            ],
+            test_dir, [load_expected_fragment(test_dir, "error"),],
         )
 
     def test_error_invalid_pdf(self):
         test_dir = "test-error-invalid-pdf"
         self._testFragments(
-            test_dir,
-            [
-                load_expected_fragment(test_dir, "0.json"),
-                Fragment("inherit-blob", b""),
-                load_expected_fragment(test_dir, "error"),
-            ],
+            test_dir, [load_expected_fragment(test_dir, "error"),],
         )
 
     def test_owner_protected_pdf(self):

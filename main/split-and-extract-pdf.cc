@@ -68,6 +68,7 @@ splitAndExtractPdf(
   }
 
   json pageJson = json::parse(jsonTemplate);
+  addDocumentMetadataFromPdf(pageJson["metadata"], fDocument.get());
 
   const int nPages = FPDF_GetPageCount(fDocument.get());
 
@@ -104,8 +105,8 @@ main(int argc, char** argv)
   if (argc != 3) {
     std::cerr << "Usage: " << argv[0] << " MIME-BOUNDARY JSON-TEMPLATE" << std::endl
               << std::endl
-              << "JSON-TEMPLATE will be emitted for each page; `\"pageNumber\":\"%PAGENUM%\"` will" << std::endl
-              << "be found and given a page number starting with 1." << std::endl;
+              << "JSON-TEMPLATE will be emitted for each page; its metadata.pageNumber will "
+              << "be a page number starting with 1." << std::endl;
 
     return 1;
   }

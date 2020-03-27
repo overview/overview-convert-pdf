@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include "json.hpp"
 #include "public/fpdfview.h"
 
 /**
@@ -155,3 +156,23 @@ outputProgress(
 std::string
 formatLastPdfiumError();
 
+/**
+ * Reads metadata (if set) from document and adds to `metadata`.
+ *
+ * Any of the following keys may be added.
+ *
+ *   * Title
+ *   * Author
+ *   * Subject
+ *   * Keywords
+ *   * CreationDate
+ *   * ModificationDate
+ *
+ * All values will be truncated to 500 bytes of UTF-16.
+ *
+ * 0-byte metadata values will be ignored.
+ *
+ * If a key is already set in `metadata`, it will not be read from the PDF.
+ */
+void
+addDocumentMetadataFromPdf(nlohmann::json& metadata, FPDF_DOCUMENT fDocument);
