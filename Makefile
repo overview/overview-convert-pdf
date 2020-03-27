@@ -1,7 +1,7 @@
 CXX = clang++
 LD = $(CXX)
-CXXFLAGS = -Wall -std=c++11 -stdlib=libc++ -I/usr/include/pdfium
-LDFLAGS = -Wall -std=c++11 -stdlib=libc++ -static -lm -pthread -lpdfium
+CXXFLAGS = -Wall -std=c++11 -stdlib=libc++ -I/usr/include/pdfium -O2
+LDFLAGS = -Wall -std=c++11 -stdlib=libc++ -static -lm -pthread -lpdfium -O2
 
 all: split-and-extract-pdf extract-pdf
 
