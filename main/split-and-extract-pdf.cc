@@ -12,6 +12,9 @@
 #include "lodepng.h"
 
 #include "util.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 class StdoutWrite : public FPDF_FILEWRITE {
 public:
@@ -54,9 +57,7 @@ static void
 splitAndExtractPdf(
     const char* filename,
     const std::string& mimeBoundary,
-    const std::string& jsonTemplate,
-    size_t jsonReplacePos,
-    size_t jsonReplaceLen
+    const std::string& jsonTemplate
 )
 {
   FPDF_STRING fFilename(filename);
@@ -65,6 +66,8 @@ splitAndExtractPdf(
     outputErrorAndExit(std::string("Failed to open PDF: ") + formatLastPdfiumError(), mimeBoundary);
     return;
   }
+
+  json pageJson = json::parse(jsonTemplate);
 
   const int nPages = FPDF_GetPageCount(fDocument.get());
 
@@ -80,10 +83,9 @@ splitAndExtractPdf(
     }
 
     // 1. JSON (must come first)
-    std::string json(jsonTemplate);
-    json.replace(jsonReplacePos, jsonReplaceLen, std::to_string(pageIndex + 1));
+    pageJson["metadata"]["pageNumber"] = pageIndex + 1;
     const std::string jsonName(std::to_string(pageIndex) + ".json");
-    outputFragment(jsonName, json, mimeBoundary);
+    outputFragment(jsonName, pageJson.dump(), mimeBoundary);
 
     // 2. Thumbnail
     outputPageThumbnailFragmentOrErrorAndExit(fPage.get(), pageIndex, mimeBoundary);
@@ -111,18 +113,9 @@ main(int argc, char** argv)
   const std::string mimeBoundary(argv[1]);
   const std::string jsonTemplate(argv[2]);
 
-  const size_t replaceIndex(jsonTemplate.find("\"pageNumber\":\"%PAGENUM%\""));
-  if (replaceIndex == std::string::npos) {
-    std::cerr << "JSON template must contain '\"pageNumber\":\"%PAGENUM%\"'\", case-sensitive, no spaces" << std::endl;
-    return 1;
-  }
-
-  const size_t jsonReplacePos = replaceIndex + 13;
-  const size_t jsonReplaceLen = 11;
-
   FPDF_InitLibrary();
 
-  splitAndExtractPdf("input.blob", mimeBoundary, jsonTemplate, jsonReplacePos, jsonReplaceLen);
+  splitAndExtractPdf("input.blob", mimeBoundary, jsonTemplate);
 
   outputDoneAndExit(mimeBoundary);
 

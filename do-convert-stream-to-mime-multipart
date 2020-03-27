@@ -4,12 +4,10 @@ set -e
 
 cat > input.blob
 
-if [ 'true' = $(echo "$2" | jq .wantSplitByPage) ]; then
-  JSON_TEMPLATE="$(echo "$2" | jq -c '{ filename: .filename, contentType: "application/pdf", languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, metadata: (.metadata + { "pageNumber": "%PAGENUM%" }) }')"
+JSON_TEMPLATE="$(echo "$2" | jq -c '{ filename: .filename, contentType: "application/pdf", languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, metadata: .metadata }')"
 
+if [ 'true' = $(echo "$2" | jq .wantSplitByPage) ]; then
   exec /app/split-and-extract-pdf "$1" "$JSON_TEMPLATE"
 else
-  JSON="$(echo "$2" | jq -c '{ filename: .filename, contentType: "application/pdf", languageCode: .languageCode, wantOcr: false, wantSplitByPage: false, metadata: .metadata }')"
-
-  exec /app/extract-pdf "$1" "$JSON"
+  exec /app/extract-pdf "$1" "$JSON_TEMPLATE"
 fi
