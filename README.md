@@ -31,8 +31,7 @@ Throughput goals: on a reasonable machine, for a small PDF...:
 
 # Developing
 
-1. [Install Docker-CE](https://docs.docker.com/engine/installation/) and
-   if you're on Linux, [install docker-compose](https://docs.docker.com/compose/install/#install-compose).
+1. [Install Docker-CE](https://docs.docker.com/engine/installation/).
 1. Run `docker build .`
 
 (Useful builds: `docker build --target=test .` will compile binaries and run
