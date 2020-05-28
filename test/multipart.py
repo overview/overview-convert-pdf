@@ -40,14 +40,8 @@ __license__ = 'MIT'
 from tempfile import TemporaryFile
 from wsgiref.headers import Headers
 import re, sys
-try:
-    from urlparse import parse_qs
-except ImportError: # pragma: no cover (fallback for Python 2.5)
-    from cgi import parse_qs
-try:
-    from io import BytesIO
-except ImportError: # pragma: no cover (fallback for Python 2.5)
-    from StringIO import StringIO as BytesIO
+from urllib.parse import parse_qs
+from io import BytesIO
 
 ##############################################################################
 ################################ Helper & Misc ################################

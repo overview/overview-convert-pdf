@@ -165,8 +165,8 @@ formatLastPdfiumError();
  *   * Author
  *   * Subject
  *   * Keywords
- *   * CreationDate
- *   * ModificationDate
+ *   * Creation Date
+ *   * Modification Date
  *
  * All values will be truncated to 500 bytes of UTF-16.
  *

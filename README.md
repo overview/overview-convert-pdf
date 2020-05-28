@@ -17,6 +17,7 @@ the metadata value will be filled in the output (or each page of output):
 * `Author`
 * `Subject`
 * `Keywords`
+* `Creator` (program that created the document)
 * `Creation Date`
 * `Modification Date`
 

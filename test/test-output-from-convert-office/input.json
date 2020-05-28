@@ -1,0 +1,10 @@
+{
+  "contentType": "application/pdf",
+  "filename": "from-libreoffice.xls",
+  "languageCode": "en",
+  "metadata": {
+    "foo": "bar"
+  },
+  "wantOcr": false,
+  "wantSplitByPage": false
+}

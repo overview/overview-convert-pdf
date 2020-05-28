@@ -171,6 +171,19 @@ class TestSplitPdfAndExtractText(unittest.TestCase):
             ],
         )
 
+    def test_extract_from_convert_office_output_pdf(self):
+        test_dir = "test-output-from-convert-office"
+        self._testFragments(
+            test_dir,
+            [
+                load_expected_fragment(test_dir, "0.json"),
+                Fragment("inherit-blob", b""),
+                load_expected_fragment(test_dir, "0-thumbnail.png"),
+                load_expected_fragment(test_dir, "0.txt"),
+                Fragment("done", b""),
+            ]
+        )
+
     def test_error_encrypted(self):
         test_dir = "test-error-encrypted"
         self._testFragments(

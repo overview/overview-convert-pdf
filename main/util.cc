@@ -373,6 +373,7 @@ addDocumentMetadataFromPdf(nlohmann::json& metadata, FPDF_DOCUMENT fDocument)
   readAndAddMetadata(fDocument, metadata, "Author", "Author");
   readAndAddMetadata(fDocument, metadata, "Subject", "Subject");
   readAndAddMetadata(fDocument, metadata, "Keywords", "Keywords");
+  readAndAddMetadata(fDocument, metadata, "Creator", "Creator");
   readAndAddMetadata(fDocument, metadata, "CreationDate", "Creation Date", true);
-  readAndAddMetadata(fDocument, metadata, "ModificationDate", "Modification Date", true);
+  readAndAddMetadata(fDocument, metadata, "ModDate", "Modification Date", true);
 }
