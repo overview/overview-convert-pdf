@@ -56,14 +56,14 @@ FROM prebuild AS build
 # Use the Docker command line to mount the volume.
 
 
-FROM overview/overview-convert-framework:0.0.12 AS framework
+FROM overview/overview-convert-framework:0.1.1 AS framework
 
 
 # Alpine: our base image
 #
 # We put this build stage here, so that the "compiled" build stage won't
 # force a rebuild when tests pass
-FROM alpine:3.7 AS base
+FROM alpine:3.11.6 AS base
 RUN apk add --update --no-cache jq ca-certificates
 WORKDIR /app
 COPY --from=framework /app/run /app/
